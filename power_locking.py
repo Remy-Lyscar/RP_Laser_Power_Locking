@@ -1,131 +1,103 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jun 20 13:53:26 2024
 
-import time
+@author: ipiq
+"""
+
+import time 
+from pyrpl.async_utils import sleep
 import numpy as np
-import rp
-
-
-#? Possible waveforms:
-#?   RP_WAVEFORM_SINE, RP_WAVEFORM_SQUARE, RP_WAVEFORM_TRIANGLE, RP_WAVEFORM_RAMP_UP,
-#?   RP_WAVEFORM_RAMP_DOWN, RP_WAVEFORM_DC, RP_WAVEFORM_PWM, RP_WAVEFORM_ARBITRARY,
-#?   RP_WAVEFORM_DC_NEG, RP_WAVEFORM_SWEEP
-
-channel = rp.RP_CH_1        # rp.RP_CH_2
-waveform = rp.RP_WAVEFORM_SINE
-freq = 100000
-ampl = 1.0
-
-ncyc = 3
-nor = 1
-period = 10
-
-trig_lvl = 0.5
-trig_dly = 0
-
-#? Possible decimations:
-#?  RP_DEC_1, RP_DEC_2, RP_DEC_4, RP_DEC_8, RP_DEC_16, RP_DEC_32, RP_DEC_64,
-#?  RP_DEC_128, RP_DEC_256, RP_DEC_512, RP_DEC_1024, RP_DEC_2048, RP_DEC_4096, RP_DEC_8192,
-#?  RP_DEC_16384, RP_DEC_32768, RP_DEC_65536
-
-# RP_DEC_1 corresponds to the maximum sampling rate (125 Ms/s), or equivalently to the buffer with the minimum time scale (130 microseconds)
-
-dec = rp.RP_DEC_1
-
-#? Possible generation trigger sources:
-#?  RP_GEN_TRIG_SRC_INTERNAL, RP_GEN_TRIG_SRC_EXT_PE, RP_GEN_TRIG_SRC_EXT_NE
-
-gen_trig_sour = rp.RP_GEN_TRIG_SRC_INTERNAL
-
-#? Possible acquisition trigger sources:
-#?  RP_TRIG_SRC_DISABLED, RP_TRIG_SRC_NOW, RP_TRIG_SRC_CHA_PE, RP_TRIG_SRC_CHA_NE, RP_TRIG_SRC_CHB_PE,
-#?  RP_TRIG_SRC_CHB_NE, RP_TRIG_SRC_EXT_PE, RP_TRIG_SRC_EXT_NE, RP_TRIG_SRC_AWG_PE, RP_TRIG_SRC_AWG_NE,
-#?  RP_TRIG_SRC_CHC_PE, RP_TRIG_SRC_CHC_NE, RP_TRIG_SRC_CHD_PE, RP_TRIG_SRC_CHD_NE
-
-acq_trig_sour = rp.RP_TRIG_SRC_AWG_PE
-
-N = 16384 # Number of the samples in a full buffer 
+import matplotlib.pyplot as plt 
+from pyrpl import Pyrpl
 
 
 
-# Initialize the interface
-rp.rp_Init()
+# Opening of a Pyrpl session to interact with RedPitaya
+HOSTNAME = "192.168.1.208"
+p = Pyrpl(hostname = HOSTNAME)
 
-# Reset Generation and Acquisition
-rp.rp_GenReset()
-rp.rp_AcqReset()
-
-###### Generation #####
-print("Gen_start")
-rp.rp_GenWaveform(channel, waveform)
-rp.rp_GenFreqDirect(channel, freq)
-rp.rp_GenAmp(channel, ampl)
-
-# Change to burst mode
-rp.rp_GenMode(channel, rp.RP_GEN_MODE_BURST)
-rp.rp_GenBurstCount(channel, ncyc)                  # Ncyc
-rp.rp_GenBurstRepetitions(channel, nor)             # Nor
-rp.rp_GenBurstPeriod(channel, period)               # Period
+# # Access the RedPitaya object in charge of communicating with the board
+r = p.rp
 
 
-# Specify generator trigger source
-rp.rp_GenTriggerSource(channel, gen_trig_sour)
+asg = r.asg1
+s = r.scope
 
-# Enable output synchronisation
-rp.rp_GenOutEnableSync(True)
-rp.rp_GenOutEnable(channel)
+# turn off asg so the scope has a chance to measure its "off-state" as well
+asg.output_direct = "off"
+
+# setup scope
+s.input1 = 'in1'
+
+# pass asg signal through pid0 with a simple integrator - just for fun (detailed explanations for pid will follow)
+r.pid0.input = 'asg1'
+r.pid0.ival = 0 # reset the integrator to zero
+r.pid0.i = 1000 # unity gain frequency of 1000 hz
+r.pid0.p = 1.0 # proportional gain of 1.0
+r.pid0.inputfilter = [0,0,0,0] # leave input filter disabled for now
+
+# show pid output on channel2
+s.input2 = 'pid0'
+
+# trig at zero volt crossing
+s.threshold = 0
+
+# positive/negative slope is detected by waiting for input to
+# sweep through hysteresis around the trigger threshold in
+# the right direction
+s.hysteresis = 0.01
+
+# trigger on the input signal positive slope
+s.trigger_source = 'ch1_positive_edge'
+
+# take data symetrically around the trigger event
+s.trigger_delay = 0
+
+# set decimation factor to 64 -> full scope trace is 8ns * 2^14 * decimation = 8.3 ms long
+s.decimation = 64
+
+# launch a single (asynchronous) curve acquisition, the asynchronous
+# acquisition means that the function returns immediately, eventhough the
+# data-acquisition is still going on.
+res = s.curve_async()
+
+print("Before turning on asg:")
+print("Curve ready:", s.curve_ready()) # trigger should still be armed
+
+# turn on asg and leave enough time for the scope to record the data
+asg.setup(frequency=1e3, amplitude=0.3, waveform='halframp', trigger_source='immediately')
+sleep(0.010)
+
+# check that the trigger has been disarmed
+print("After turning on asg:")
+print("Curve ready:", s.curve_ready())
+print("Trigger event age [ms]:",8e-9*((
+s.current_timestamp&0xFFFFFFFFFFFFFFFF) - s.trigger_timestamp)*1000)
+
+# The function curve_async returns a *future* (or promise) of the curve. To
+# access the actual curve, use result()
+ch1, ch2 = res.result()
+
+# plot the data
+%matplotlib inline
+plt.plot(s.times*1e3, ch1)
+plt.plot(s.times*1e3, ch2, label = 'pid')
+plt.legend()
+plt.xlabel("Time [ms]")
+plt.ylabel("Voltage")
 
 
-##### Acquisition #####
-# Set Decimation
-rp.rp_AcqSetDecimation(dec)
-
-#? Possible triggers:
-#?  RP_T_CH_1, RP_T_CH_2, RP_T_CH_3, RP_T_CH_4, RP_T_CH_EXT
-
-# Set trigger level and delay
-rp.rp_AcqSetTriggerLevel(rp.RP_T_CH_1, trig_lvl)
-rp.rp_AcqSetTriggerDelay(trig_dly)
-
-
-# Start Acquisition
-print("Acq_start")
-rp.rp_AcqStart()
-
-# Specify trigger - input 1 positive edge
-rp.rp_AcqSetTriggerSrc(acq_trig_sour)
-
-
-rp.rp_GenTriggerOnly(channel)       # Trigger generator
-
-print(f"Trigger state: {rp.rp_AcqGetTriggerState()}")
-
-# Trigger state
-while 1:
-    trig_state = rp.rp_AcqGetTriggerState()[1]
-    if trig_state == rp.RP_TRIG_STATE_TRIGGERED:
-        break
-
-## ! OS 2.00 or higher only ! ##
-# Fill state
-print(f"Fill state: {rp.rp_AcqGetBufferFillState()}")
-
-## ! OS 2.00 or higher only ! ##
-while 1:
-    if rp.rp_AcqGetBufferFillState()[1]:
-        break
-
-
-### Get data ###
-# Volts
-fbuff = rp.fBuffer(N)
-res = rp.rp_AcqGetDataV(rp.RP_CH_1, 0, N, fbuff)
-
-data_V = np.zeros(N, dtype = float)
-
-for i in range(0, N, 1):
-    data_V[i] = fbuff[i]
-
-print(f"Data in Volts: {data_V}")
-
-# Release resources
-rp.rp_Release()
+# useful functions for scope diagnostics
+print("Curve ready:", s.curve_ready())
+print("Trigger source:",s.trigger_source)
+print("Trigger threshold [V]:",s.threshold)
+print("Averaging:",s.average)
+print("Trigger delay [s]:",s.trigger_delay)
+print("Trace duration [s]: ",s.duration)
+print("Trigger hysteresis [V]", s.hysteresis)
+print("Current scope time [cycles]:",hex(s.current_timestamp))
+print("Trigger time [cycles]:",hex(s.trigger_timestamp))
+print("Current voltage on channel 1 [V]:", r.scope.voltage_in1)
+print("First point in data buffer 1 [V]:", s.ch1_firstpoint)

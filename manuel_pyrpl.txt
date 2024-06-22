@@ -1,0 +1,43 @@
+Ceci est une notice explicative pour installer et utiliser pyrpl (sur linux)
+
+
+1) Installation d'Anaconda
+Suivre les instructions sur le site d'Anaconda pour installer Anaconda3: https://docs.anaconda.com/anaconda/install/linux/
+
+
+2) Environnement virtuel: 
+Créer un environnement virtuel pour pyrpl avec la commande suivante: 
+
+	conda create -y -n pyrpl-env python=3.6 numpy scipy paramiko pandas nose pip pyqt qtpy pyqtgraph pyyaml
+
+-> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être fait à l'utilisateur
+-> -n (pour 'name') permet de spécifier un nom pour l'environnement, ici 'pyrpl-env'
+-> Il faut impérativement précison python = 3.6 pour éviter tout problème de compatibilité
+
+Activer ensuite l'environnement avec: 
+	conda activate pyrpl-env
+
+
+3) Installation de Spyder: 
+Directement dans l'environnement virtuel : 
+	conda install spyder 
+	
+
+4) Lancement de pyrpl: 
+Dans la console de spyder: 
+	pip install pyrpl
+Ensuite on peut importer pyrpl et travailler sur la RedPitaya: 
+	from pyrpl import Pyrpl
+	
+Rq: Il peut être aussi nécessaire d'installer le package 'quamash': 
+	pip install quamash
+	
+5) Dernière étape: 
+Si le message d'erreur suivant apparaît lors du lancement de l'interface graphique de pyrpl avec p=Pyrpl()
+	AttributeError: module 'qtpy.QtCore' has no attribute 'pyqtBoundSignal'
+	
+Il faut forcer le downgrade de qtpy avec la commande:
+	pip install qtpy==1.9.0
+	
+	
+Rq: Avec cet environnement virtuel, un certain nombre de packages doivent encore être installés, comme c'est le cas pour matplotlib.
