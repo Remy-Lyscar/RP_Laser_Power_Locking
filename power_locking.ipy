@@ -16,10 +16,29 @@ from pyrpl import Pyrpl
 
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
-p = Pyrpl(hostname = HOSTNAME)
+p = Pyrpl('test3', hostname = HOSTNAME)
+
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
+
+
+
+# Reset of all the modules that can be set to 'out1'
+
+# PID Module
+pid = r.pid0
+pid1 = r.pid1
+pid2 = r.pid2
+pid.output_direct = 'off'
+pid1.output_direct = 'off'
+pid2.output_direct = 'off'
+
+# ASG module
+asg0 = r.asg0
+asg1 = r.asg1
+asg0.output_direct = 'off'
+asg1.output_direct = 'off'
 
 
 
@@ -30,21 +49,17 @@ s.input2 = 'out1'
 
 
 
-
-pid = r.pid0
-
-
 # Setup the parameters of the PID 
 pid.input = 'in1'
 pid.output_direct = 'out1'
-pid.setpoint = 
-pid.p = 
-pid.i = 
+pid.setpoint = 0.09
+pid.p = -10
+pid.i = -0.01
 pid.d = 0
 pid.ival = 0
 pid.inputfilter = [0, 0, 0, 0]
-pid.max_voltage = 
-pid.min_voltage = 
+pid.max_voltage = 1
+pid.min_voltage = -1
 
 
 # Quand on veut arrêter le PID il suffit de passer output_direct à 'off', 
@@ -52,6 +67,8 @@ pid.min_voltage =
 
 
 
+# err = input - setpoint 
+# -> il faut un p négatif, et un i négatif 
 
 
 
