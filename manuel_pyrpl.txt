@@ -10,9 +10,9 @@ Créer un environnement virtuel pour pyrpl avec la commande suivante:
 
 	conda create -y -n pyrpl-env python=3.6 numpy scipy paramiko pandas nose pip pyqt qtpy pyqtgraph pyyaml
 
--> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être fait à l'utilisateur
+-> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être faites à l'utilisateur
 -> -n (pour 'name') permet de spécifier un nom pour l'environnement, ici 'pyrpl-env'
--> Il faut impérativement précison python = 3.6 pour éviter tout problème de compatibilité
+-> Il faut impérativement préciser python = 3.6 pour éviter tout problème de compatibilité
 
 Activer ensuite l'environnement avec: 
 	conda activate pyrpl-env
