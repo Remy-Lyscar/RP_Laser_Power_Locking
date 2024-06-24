@@ -11,7 +11,23 @@ from pyrpl.async_utils import sleep
 import numpy as np
 import matplotlib.pyplot as plt 
 from pyrpl import Pyrpl
+import pandas as pd 
+import pickle 
+import os 
+import path
+import AllanTools 
+import tqdm 
 
+
+
+'''
+L'installation via pip de AllanTools s'est bien passée jusqu'à 
+WARNING: Ignoring invalid distribution -ip (c:\python39\lib\site-packages)
+  WARNING: Failed to write executable - trying to use .deleteme logic
+ERROR: Could not install packages due to an OSError: [WinError 2] Le fichier spécifié est introuvable: 'c:\\python39\\Scripts\\tabulate.exe' -> 'c:\\python39\\Scripts\\tabulate.exe.deleteme'
+
+Il faudra voir si cette erreur empêche le fonctionnement de AllanTools pour ce que je veux faire ou non 
+'''
 
 
 # Opening of a Pyrpl session to interact with RedPitaya
@@ -26,6 +42,10 @@ r = p.rp
 # NB: Spectrum analyzer widget uses data from the scope, so both widgets cannot 
 # be used simultaneously 
 
+# SpectrumAnalyzer (just like Lockbox and Network Analyzer) are software modules
+# so they are available directly at the root of the pyrpl object
+# It's also a good habit to deal with hardware modules (st PID or scope)
+# using the module managers, ie using "with structure" in the code
 
 
 ##### Spectrum Analyzer #####
