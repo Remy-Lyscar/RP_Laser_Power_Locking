@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 20 13:53:26 2024
+Created on Tue Jun 25 10:05:00 2024
 
 @author: ipiq
 """
-
 
 import time 
 from pyrpl.async_utils import sleep
@@ -19,6 +18,8 @@ import pickle
 # import tqdm 
 
 
+
+
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
 p = Pyrpl('test3', hostname = HOSTNAME)
@@ -26,10 +27,12 @@ p = Pyrpl('test3', hostname = HOSTNAME)
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
+s = r.scope
 
 
 
-# Reset of all the modules that can be set to 'out1'
+# Reset of all the modules that can be set to 'out1' in order to be sure to 
+# be in free running 
 
 # PID Module
 pid = r.pid0
@@ -47,49 +50,20 @@ asg1.output_direct = 'off'
 
 
 
-# Setup the scope 
-s = r.scope 
-s.input1 = 'in1'
-s.input2 = 'out1'
-
-
-
-# Setup the parameters of the PID 
-pid.input = 'in1'
-pid.output_direct = 'out1'
-pid.setpoint = 0.09
-pid.p = -10
-pid.i = -0.01
-pid.d = 0
-pid.ival = 0
-pid.inputfilter = [0, 0, 0, 0]
-pid.max_voltage = 1
-pid.min_voltage = -1
-
-
-# Quand on veut arrêter le PID il suffit de passer output_direct à 'off', 
-# et on peut le faire en temps réel dans le terminal de commande 
-
-
-
-# err = input - setpoint 
-# -> il faut un p négatif, et un i négatif 
-
-
 
 times, signal  = [], []
 
 
 t0 = time.time()
 
-while time.time() - t0 < 300: 
+while time.time() - t0 < 600: 
     sleep(0.25)
     times.append(time.time()-t0)
     signal.append(s.voltage_in1)
     
     
 fig = plt.figure()
-plt.plot(times, signal, label = 'locked laser')
+plt.plot(times, signal, label = 'free running laser')
 plt.xlabel('times (seconds)')
 plt.ylabel('input voltage (V)')
 plt.legend()
@@ -103,7 +77,11 @@ df = pd.DataFrame({
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-pickle.dump(df, open(os.path.join(current_dir, 'locked_laser.pkl'), 'wb'))
+pickle.dump(df, open(os.path.join(current_dir, 'free_running_signal.pkl'), 'wb'))
 
 
+    
 
+    
+    
+    

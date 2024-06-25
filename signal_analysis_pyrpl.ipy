@@ -15,7 +15,7 @@ import pandas as pd
 import pickle 
 import os 
 # import path
-import AllanTools 
+import allantools 
 # import tqdm 
 
 
@@ -36,11 +36,44 @@ r = p.rp
 # It's also a good habit to deal with hardware modules (st PID or scope)
 # using the module managers, ie using "with structure" in the code
 
+
+
+# In the next steps I would like to make some plots to discuss the link 
+# between PSD (frequency domain) and Allan Variance (time domain)
+
 ##### Spectrum Analyzer #####
 
 
+# setup the spectrumanalyzer in baseband mode and full span
+p.spectrumanalyzer.setup(input1_baseband='in1', baseband=True, span=125e6, window = hamming)
+
+# the return format is (spectrum for channel 1, spectrum for channel 2,
+# real part of cross spectrum, imaginary part of cross spectrum):
+ch1, _, _, _ = p.spectrumanalyzer.curve()
 
 
+
+# plot the spectrum 
+%matplotlib inline
+plt.plot(p.spectrumanalyzer.frequencies, ch1)
+
+
+# convert to Vrms^2/Hz (conversion of the spectrum in units of noise spectral density ?)
+data = p.spectrumanalyzer.data_to_unit(ch1, 'Vrms^2/Hz', p.spectrumanalyzer.rbw)
+
+
+
+# plot the spectrum
+plt.plot(p.spectrumanalyzer.frequencies, data)
+
+# integrate spectrum from 0 to nyquist frequency
+df = p.spectrumanalyzer.frequencies[1] - p.spectrumanalyzer.frequencies[0]
+print(sum(data)*df)
+
+
+# The documentation explains that "the integral of the noise spectrum over the whole frequency range gives the variance of the noise"
+# What does it mean and how to interprete it ? 
+# For this, see the page "How a spectrum is computed in PyRPL?"
 
 
 ##### Allan Variance ##### 
