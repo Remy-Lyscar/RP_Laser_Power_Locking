@@ -17,6 +17,11 @@ import os
 # import path
 import allantools 
 # import tqdm 
+import scienceplots
+import numpy.fft as fft 
+
+
+# plt.style.use('science')
 
 
 # Opening of a Pyrpl session to interact with RedPitaya
@@ -26,6 +31,60 @@ p = Pyrpl('test3', hostname = HOSTNAME)
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
+
+
+
+# Reset of all the modules that can be set to 'out1'
+
+# PID Module
+pid = r.pid0
+pid1 = r.pid1
+pid2 = r.pid2
+pid.output_direct = 'off'
+pid1.output_direct = 'off'
+pid2.output_direct = 'off'
+
+# ASG module
+asg0 = r.asg0
+asg1 = r.asg1
+asg0.output_direct = 'off'
+asg1.output_direct = 'off'
+
+
+
+# Setup the scope 
+s = r.scope 
+s.input1 = 'in1'
+s.input2 = 'out1'
+
+
+
+# Setup the parameters of the PID 
+pid.input = 'in1'
+pid.output_direct = 'out1'
+pid.setpoint = 0.01
+pid.p = -10
+pid.i = -0.01
+pid.d = 0
+pid.ival = 0
+pid.inputfilter = [0, 0, 0, 0]
+pid.max_voltage = 1
+pid.min_voltage = -1
+
+sleep(5)  # We wait so that the lock is well set for the data acquisition
+
+times, signal  = [], []
+
+
+t0 = time.time()
+fs = 1000 # Hz
+duration = 5 # seconds
+
+while time.time() - t0 < duration: 
+    sleep(1/fs)
+    times.append(time.time()-t0)
+    signal.append(s.voltage_in1)
+
 
 
 # NB: Spectrum analyzer widget uses data from the scope, so both widgets cannot 
@@ -41,50 +100,65 @@ r = p.rp
 # In the next steps I would like to make some plots to discuss the link 
 # between PSD (frequency domain) and Allan Variance (time domain)
 
-##### Spectrum Analyzer #####
+
+##### Spectrum Analyzer (and link with Allan Variance) #####
+
+# allows to detect and measure the fast fluctuations and the type of noise 
+
+# following : https://www.geeksforgeeks.org/spectrum-analysis-in-python/
+
+# Why negative frequencies when computing only the fft ? 
+
+# We are interested in the PSD way more than just the fft, ie the plot of the amplitudes 
+# as a function of frequency. Indeed, PSD allows to distinguish noise from signal and to detect 
+# the type of noise  
+
+# 2 ways:
+# scipy.signal.periodogram
+
+# scipy.signal.welch
+# Welch Method estimates PSD by averaging periodograms of overlapping signal segments.
+# The Welch Method divides the signal into segments, applies a window function, and computes the FFT for each segment.
 
 
-# setup the spectrumanalyzer in baseband mode and full span
-p.spectrumanalyzer.setup(input1_baseband='in1', baseband=True, span=125e6, window = hamming)
-
-# the return format is (spectrum for channel 1, spectrum for channel 2,
-# real part of cross spectrum, imaginary part of cross spectrum):
-ch1, _, _, _ = p.spectrumanalyzer.curve()
 
 
 
-# plot the spectrum 
-%matplotlib inline
-plt.plot(p.spectrumanalyzer.frequencies, ch1)
+### Power-locked signal ###
+
+t = np.array(times)
 
 
-# convert to Vrms^2/Hz (conversion of the spectrum in units of noise spectral density ?)
-data = p.spectrumanalyzer.data_to_unit(ch1, 'Vrms^2/Hz', p.spectrumanalyzer.rbw)
+ 
+dft = fft.fft(signal)
+freq = fft.fftfreq(t.shape[-1], d=1/fs)
+dft = np.abs(dft)
+
+plt.loglog(freq, dft) 
+plt.xlabel('frequency (Hz)')
+plt.ylabel('Amplitude')
+plt.title('Spectrum of the locked photodiode signal')
+plt.legend()
+plt.show()
 
 
 
-# plot the spectrum
-plt.plot(p.spectrumanalyzer.frequencies, data)
+df = pd.DataFrame({
+                    'times': times, 
+                    'signal': signal, 
+                    'spectrum': dft, 
+                    'freq': freq} )
 
-# integrate spectrum from 0 to nyquist frequency
-df = p.spectrumanalyzer.frequencies[1] - p.spectrumanalyzer.frequencies[0]
-print(sum(data)*df)
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+pickle.dump(df, open(os.path.join(current_dir, 'spectrum_locked_laser.pkl'), 'wb'))
 
 
-# The documentation explains that "the integral of the noise spectrum over the whole frequency range gives the variance of the noise"
-# What does it mean and how to interprete it ? 
-# For this, see the page "How a spectrum is computed in PyRPL?"
+
 
 
 ##### Allan Variance ##### 
-
-
-
-
-
-
-
-
 
 
 

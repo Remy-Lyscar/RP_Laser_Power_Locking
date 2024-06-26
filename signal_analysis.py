@@ -18,6 +18,11 @@ import os
 import allantools 
 # import tqdm 
 from scipy.optimize import curve_fit
+import scienceplots 
+from numpy.fft import fft
+
+
+plt.style.use('science')
 
 
 
@@ -181,6 +186,8 @@ print(m, d)
 
 ##### Allance Variance of the signals : stability over time #####
 
+# Adev is able to measure the effect of the slow variations due to variations of the polarization 
+
 
 
 # def fit_function(x, a, b): 
@@ -233,14 +240,14 @@ print(m, d)
 
 
 
+'''
+L'installation via pip de AllanTools s'est bien passée jusqu'à 
+WARNING: Ignoring invalid distribution -ip (c:\python39\lib\site-packages)
+  WARNING: Failed to write executable - trying to use .deleteme logic
+ERROR: Could not install packages due to an OSError: [WinError 2] Le fichier spécifié est introuvable: 'c:\\python39\\Scripts\\tabulate.exe' -> 'c:\\python39\\Scripts\\tabulate.exe.deleteme'
 
-
-
-
-
-
-
-
+Il faudra voir si cette erreur empêche le fonctionnement de AllanTools pour ce que je veux faire ou non 
+'''
 
 
 

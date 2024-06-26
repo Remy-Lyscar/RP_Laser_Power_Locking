@@ -57,7 +57,7 @@ s.input2 = 'out1'
 # Setup the parameters of the PID 
 pid.input = 'in1'
 pid.output_direct = 'out1'
-pid.setpoint = 0.09
+pid.setpoint = 0.08
 pid.p = -10
 pid.i = -0.01
 pid.d = 0
@@ -82,8 +82,8 @@ times, signal  = [], []
 
 t0 = time.time()
 
-while time.time() - t0 < 300: 
-    sleep(0.25)
+while time.time() - t0 < 3600: 
+    sleep(0.5)
     times.append(time.time()-t0)
     signal.append(s.voltage_in1)
     
@@ -103,7 +103,7 @@ df = pd.DataFrame({
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-pickle.dump(df, open(os.path.join(current_dir, 'locked_laser.pkl'), 'wb'))
+pickle.dump(df, open(os.path.join(current_dir, 'locked_laser_mer_26_juin.pkl'), 'wb'))
 
 
 
