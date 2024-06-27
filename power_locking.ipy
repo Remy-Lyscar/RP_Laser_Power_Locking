@@ -28,7 +28,6 @@ p = Pyrpl('test3', hostname = HOSTNAME)
 r = p.rp
 
 
-
 # Reset of all the modules that can be set to 'out1'
 
 # PID Module
@@ -57,7 +56,7 @@ s.input2 = 'out1'
 # Setup the parameters of the PID 
 pid.input = 'in1'
 pid.output_direct = 'out1'
-pid.setpoint = 0.08
+pid.setpoint = 0.06
 pid.p = -10
 pid.i = -0.01
 pid.d = 0
@@ -75,35 +74,36 @@ pid.min_voltage = -1
 # err = input - setpoint 
 # -> il faut un p négatif, et un i négatif 
 
+Acq = False 
 
-
-times, signal  = [], []
-
-
-t0 = time.time()
-
-while time.time() - t0 < 3600: 
-    sleep(0.5)
-    times.append(time.time()-t0)
-    signal.append(s.voltage_in1)
+if Acq:
+    times, signal  = [], []
     
     
-fig = plt.figure()
-plt.plot(times, signal, label = 'locked laser')
-plt.xlabel('times (seconds)')
-plt.ylabel('input voltage (V)')
-plt.legend()
-plt.plot()
-
-
-df = pd.DataFrame({
-                    'times': times, 
-                    'signal': signal} )
-
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-pickle.dump(df, open(os.path.join(current_dir, 'locked_laser_mer_26_juin.pkl'), 'wb'))
+    t0 = time.time()
+    
+    while time.time() - t0 < 3600: 
+        sleep(0.5)
+        times.append(time.time()-t0)
+        signal.append(s.voltage_in1)
+        
+        
+    fig = plt.figure()
+    plt.plot(times, signal, label = 'locked laser')
+    plt.xlabel('times (seconds)')
+    plt.ylabel('input voltage (V)')
+    plt.legend()
+    plt.plot()
+    
+    
+    df = pd.DataFrame({
+                        'times': times, 
+                        'signal': signal} )
+    
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    pickle.dump(df, open(os.path.join(current_dir, 'locked_laser_mer_26_juin.pkl'), 'wb'))
 
 
 
