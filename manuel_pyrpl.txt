@@ -10,9 +10,9 @@ Créer un environnement virtuel pour pyrpl avec la commande suivante:
 
 	conda create -y -n pyrpl-env python=3.6 numpy scipy paramiko pandas nose pip pyqt qtpy pyqtgraph pyyaml
 
--> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être faites à l'utilisateur
+-> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être fait à l'utilisateur
 -> -n (pour 'name') permet de spécifier un nom pour l'environnement, ici 'pyrpl-env'
--> Il faut impérativement préciser python = 3.6 pour éviter tout problème de compatibilité
+-> Il faut impérativement précison python = 3.6 pour éviter tout problème de compatibilité
 
 Activer ensuite l'environnement avec: 
 	conda activate pyrpl-env
@@ -40,4 +40,19 @@ Il faut forcer le downgrade de qtpy avec la commande:
 	pip install qtpy==1.9.0
 	
 	
-Rq: Avec cet environnement virtuel, un certain nombre de packages doivent encore être installés, comme c'est le cas pour matplotlib.
+	
+SpectrumAnalyzer: 
+Pour l'instant il n'est pas possible de plot un quelconque spectre, que ce soit dans la GUI ou dans Spyder (je n'ai vu un spectre qu'une seule fois...)
+
+J'ai rencontré les erreurs suivantes: 
+	- AttributeError: numpy.fft has no attribute fftpack: il faut downgrade numpy à une version antérieure à 1.17 -> pip install numpy==1.16.0
+	- AttributeError: SpecAnWidget has no attribute plot_item -> il faut commenter (ce n'est pas idéal mais le problème ne semble pas avoir été résolu 
+	sur PyRPL) la ligne 174 de spec_an_widget.py, qui appelle plot_item
+
+
+	- Mais le problème persiste quand j'ouvre une session PyRPL et que le message suivant s'affiche
+	"INFO:pyrpl.modules:Calling setup() for slow_output.assisted_design ..." 
+	
+	
+
+
