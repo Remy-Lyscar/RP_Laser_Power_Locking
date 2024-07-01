@@ -29,7 +29,7 @@ import pickle
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # If needed, this is the location of the PyRPL library 
-# /home/ipiq/anaconda3/envs/pyrpl-env/lib/python3.6/site-packages/pyrpl/
+# /home/ipiq/anaconda3/envs/pyrpl-env(3)/lib/python3.6/site-packages/pyrpl/
 
 
 ##### Type of power-locking #####
@@ -58,8 +58,8 @@ HOSTNAME = "192.168.1.208"
 # If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
 # Do it automatically? Using environment variables ? 
 
-monitor_server_name = monitor_server
-p = Pyrpl('blue422', hostname = HOSTNAME, monitor_server_name = monitor_server_name)
+monitor_server_name = "monitor_server"
+p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
 
 
 # # Access the RedPitaya object in charge of communicating with the board
