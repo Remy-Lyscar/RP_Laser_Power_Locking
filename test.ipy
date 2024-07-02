@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 28 10:09:05 2024
+Created on Wed Jun 26 11:46:42 2024
 
 @author: ipiq
 """
-
-
-"""
-Power-locking of the blue laser 422 nm
-Can be included in a sequence (TTL)
-
-"""
-
 
 import time 
 from pyrpl.async_utils import sleep
@@ -29,7 +21,7 @@ import pickle
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # If needed, this is the location of the PyRPL library 
-# /home/ipiq/anaconda3/envs/pyrpl-env(3)/lib/python3.6/site-packages/pyrpl/
+# /home/ipiq/anaconda3/envs/pyrpl-env/lib/python3.6/site-packages/pyrpl/
 
 
 ##### Type of power-locking #####
@@ -43,8 +35,6 @@ SEQ = False
 
 ##### Calibration of the laser #####
 
-# Powermeter: FieldMaster 
-
 
 
 
@@ -53,16 +43,8 @@ SEQ = False
 
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
-# The config file, here 'blue422', is specific to each laser. The change on one config file 
-# does not affect the other lasers 
 
-# If environment = pyrpl_env, put monitor_server_name at monitor_server
-# If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
-# Do it automatically? Using environment variables ? 
-
-monitor_server_name = "monitor_server"
-p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
-
+p = Pyrpl('new_test', hostname = HOSTNAME, reloadserver = True)
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
@@ -90,33 +72,18 @@ asg1.output_direct = 'off'
 s = r.scope 
 s.input1 = 'in1'
 s.input2 = 'out1'
-s.trigger_source = 'immediately' 
+s.trigger_source = 'immediately'
 
 
-
-# Just setup the parameters of the PID, so that the lock is activated immediately 
-pid.input = 'in1'
-pid.output_direct = 'out1'
-pid.setpoint = 0.04
-pid.p = -10
-pid.i = -0.01
-pid.d = 0
-pid.ival = 0
-pid.inputfilter = [0, 0, 0, 0]
-pid.max_voltage = 1
-pid.min_voltage = -1    
-
-
-
-
+ACQ = True 
 if ACQ: 
     
     times, signal  = [], []
-    duration = 10 # seconds
+    duration = 60 # seconds
     sampling_rate = 2 # Hz
     
     # Name of the file containing the dataframe of the acquired data 
-    # acq_file_name  =  
+    acq_file_name  =  'test.pkl'
     
     t0 = time.time()
     
@@ -142,3 +109,14 @@ if ACQ:
     
     
     pickle.dump(df, open(os.path.join(current_dir, acq_file_name), 'wb'))
+
+
+
+
+
+
+
+
+
+
+

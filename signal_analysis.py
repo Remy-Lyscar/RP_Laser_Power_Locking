@@ -234,12 +234,6 @@ plt.show()
 # Comparison with both plots on the same figure may not be apt since there 
 # would be too many points 
 
-# Rk: les std n'étant pas trs différente en vrai, il peut être intéressante de regarder 
-# quelle proportion du temps on est dans les bandes rouges pour les deux signals
-# car on voit visuellement que cette proportion est beaucoup plus importante 
-# pour le signal locké 
-
-
 
 # Voir les fonctions comme psd2allan, ... et leur fonctionnement 
 # pour faire le lien entre PSD et allan et confirmer les résultats

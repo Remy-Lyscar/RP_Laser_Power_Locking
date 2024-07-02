@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jul  2 15:26:14 2024
+
+@author: ipiq
+"""
+
+import time 
+from pyrpl.async_utils import sleep
+import numpy as np
+import matplotlib.pyplot as plt 
+import pandas as pd 
+import os 
+from pyrpl import Pyrpl
+import pickle 
+
+
+
+# Location of the file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# If needed, this is the location of the PyRPL library 
+# /home/ipiq/anaconda3/envs/pyrpl-env(3)/lib/python3.6/site-packages/pyrpl/
+
+
+
+##### RedPitaya and PyRPL #####
+
+# Opening of a Pyrpl session to interact with RedPitaya
+HOSTNAME = "192.168.1.208"
+# The config file, here 'blue422', is specific to each laser. The change on one config file 
+# does not affect the other lasers 
+
+# If environment = pyrpl_env, put monitor_server_name at monitor_server
+# If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
+# Do it automatically? Using environment variables ? 
+
+monitor_server_name = "monitor_server"
+p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
+
+
+# # Access the RedPitaya object in charge of communicating with the board
+r = p.rp
+
+
+# Reset modules 
+
+# PID Module
+pid = r.pid0
+pid1 = r.pid1
+pid2 = r.pid2
+pid.output_direct = 'off'
+pid1.output_direct = 'off'
+pid2.output_direct = 'off'
+
+# ASG module
+asg0 = r.asg0
+asg1 = r.asg1
+asg0.output_direct = 'off'
+asg1.output_direct = 'off'
+
+
+
+# # Just setup the parameters of the PID, so that the lock is activated immediately 
+# pid.input = 'in1'
+# pid.output_direct = 'out1'
+# pid.setpoint = 0.04
+# pid.p = -10
+# pid.i = -0.01
+# pid.d = 0
+# pid.ival = 0
+# pid.inputfilter = [0, 0, 0, 0]
+# pid.max_voltage = 1
+# pid.min_voltage = -1   
+
+
+
+# Spectrum Analyzer 
+
+
+# setup the spectrumanalyzer in baseband mode
+p.spectrumanalyzer.setup(input1_baseband='in1', #note that input1_baseband!=input)
+                    baseband=True, # only mod eavailable right now
+                    span=1e6, # span of the analysis (/2 in iq mode)
+                    window='hamming',  # filter window)
+                    )
+    # the return format is (spectrum for channel 1, spectrum for channel 2,
+    # real part of cross spectrum, imaginary part of cross spectrum):
+ch1, ch2, cross_re, cross_im = p.spectrumanalyzer.curve()
+
+# plot the spectrum
+fig = plt.figure()
+plt.plot(p.spectrumanalyzer.frequencies, ch1)
+plt.show()
+
+
+# convert to Vrms^2/Hz
+data = p.spectrumanalyzer.data_to_unit(ch1, 'Vrms^2/Hz', p.spectrumanalyzer.rbw)
+
+# plot the spectrum
+fig = plt.figure()
+plt.plot(p.spectrumanalyzer.frequencies, data)
+plt.show()
+
+# integrate spectrum from 0 to nyquist frequency
+df = p.spectrumanalyzer.frequencies[1] - p.spectrumanalyzer.frequencies[0]
+print(sum(data)*df)
+
+
+
+# Study the following remark from the pyrpl documentation
+
+# As expected, the integral of the noise spectrum over the whole frequency range gives 
+# the variance of the noise. To know more about spectrum analysis in Pyrpl, and in particular, 
+# how the filtering windows are normalized, please refer to the section How a spectrum is computed 
+# in PyRPL.
+
+
+
+
+ 
