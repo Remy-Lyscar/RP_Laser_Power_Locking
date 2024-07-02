@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 import scienceplots 
 
 
-# plt.style.use('science')
+plt.style.use('science')
 
 
 
@@ -102,11 +102,13 @@ def linear_fit(x, a, b):
 plt.plot(V,P, 'b.')
 plt.xlabel ('Photodiode Voltage (V)')
 plt.ylabel('Laser power (microWatts)')
+plt.rc('axes', titlesize=20)
+plt.rc('axes', labelsize = 20)
 plt.grid()
 popt, pcov = curve_fit(linear_fit, V, P)
 a = popt[0]
 b = popt[1]
-plt.plot(V, linear_fit(V, a, b), color='red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
+plt.plot(V, linear_fit(V, a, b), color = 'red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
 perr3 = np.sqrt(np.diag(pcov))
 plt.legend()
 plt.show()
