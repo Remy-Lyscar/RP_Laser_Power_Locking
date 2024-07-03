@@ -31,8 +31,8 @@ if not os.path.exists(figures_dir):
     
 
 
-free = pickle.load(open(os.path.join(df_dir,'free_running_signal_mer_3_juillet.pkl'), "rb"))
-locked = pickle.load(open(os.path.join(df_dir,'locked_laser_mer_3_juillet.pkl'), "rb"))
+free = pickle.load(open(os.path.join(df_dir,'free_running_signal_mer_26_juin.pkl'), "rb"))
+locked = pickle.load(open(os.path.join(df_dir,'locked_laser_mer_26_juin.pkl'), "rb"))
 
 times_free = free['times']
 times_locked = locked['times']
@@ -96,7 +96,7 @@ plt.hlines(m, x_bounds[0] ,x_bounds[1], colors='black', linestyles='dashed', zor
 plt.legend(fontsize=20) 
 plt.xlabel('times (seconds)')
 plt.ylabel('Power (microWatts)')
-plt.title(f'Power of the blue laser (422nm): Power setpoint = {P(0.03):.4f} microWatts')
+plt.title(f'Power of the blue laser (422nm): Power setpoint = {P(0.08):.4f} microWatts')
 plt.rc('axes', titlesize=20)
 plt.rc('axes', labelsize = 20) 
 plot_file = os.path.join(figures_dir, "locked_laser.png")
