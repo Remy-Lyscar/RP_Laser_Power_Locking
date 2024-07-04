@@ -35,7 +35,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 ##### Type of power-locking #####
 
 # Do we have to acquire data?
-ACQ = False 
+ACQ = True
 # Do we want the lock to be included in a sequence, and to react to a trigger ? 
 SEQ = False
 
@@ -97,11 +97,11 @@ s.trigger_source = 'immediately'
 # Just setup the parameters of the PID, so that the lock is activated immediately 
 pid.input = 'in1'
 pid.output_direct = 'out1'
-pid.setpoint = 0.04
-pid.p = -10
+pid.setpoint = 0.07
+pid.p = -100
 pid.i = -0.01
 pid.d = 0
-pid.ival = 0
+pid.ival = 0  # Usually the first thing to do is to adjust this parameter with the GUI 
 pid.inputfilter = [0, 0, 0, 0]
 pid.max_voltage = 1
 pid.min_voltage = -1    
@@ -112,11 +112,11 @@ pid.min_voltage = -1
 if ACQ: 
     
     times, signal  = [], []
-    duration = 10 # seconds
+    duration = 3600 # seconds
     sampling_rate = 2 # Hz
     
     # Name of the file containing the dataframe of the acquired data 
-    # acq_file_name  =  
+    acq_file_name  =  'locked_laser_jeu_4_juillet_without_average.pkl'
     
     t0 = time.time()
     

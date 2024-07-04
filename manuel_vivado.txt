@@ -1,0 +1,38 @@
+Manuel pour l'installation de Vivado 2020.1 (version compatible avec la RedPitaya)
+
+
+
+1) Téléchargement des fichiers: 
+Sur le site de Downloads de AMD, il est possible d'installer les fichiers correspondant à une certaine version de Vivado, ici 2020.1
+Dans le cas où l'on veut utiliser Vivado pour programmer la RedPitaya, il faut suivre les instructions de la documentation RedPitaya
+pour savoir quelle version installer précisément.
+
+2) Executable: 
+Sur Windows il suffit d'éxécuter le .exe, mais sur linux il faut soit éxécuter un .bin soit detarrer un .tar.gz, avant d'éxécuter un fichier de setup
+Le fichier précisé sur la documentation RedPitaya n'existant pas dans mon cas, j'ai utilisé les commandes suivantes en regardant les fichiers qui 
+avaient l'air de ressembler le plus à un éxécutable: 
+
+	chmod +x xsetup
+	sudo ./xsetup
+	
+On a alors un problème car Vivado 2020.1 n'est pas supporté par Ubuntu 22.04.4, j'ai donc dû "feinté" le rocessus d'installation:, 
+en modifiant la version dans le fichier /etc/os-release en "18/04.4 LTS (Bionic Beaver)" (voir doc. RedPitaya). Il faut ouvrir le fichier 
+avec vim ou nano mais en tout cas en mode sudo. 
+
+On peut ensuite relancer l'éxécution précédente. A la fin de l'installation, il faut impérativement remettre la bonne version dans /etc/os-release !!
+
+
+3) Installation et Licence: 
+La GUI de l'installation s'ouvre, on suit les indications. Il faut ensuite créer une licence pour pouvoir utiliser Vivado. 
+Pour cela le bouton "Connect Now" ne fonctionnant pas, il faut aller sur le site : https://www.xilinx.com/getlicense et créer une licence 
+ISE Webpack Licence.
+Puis on peut faire LoadLicense, toujours dans le License Manager.
+
+
+4) Finalisation: 
+
+Enfin on peut (si l'on a bien remis la bonne version dans le fichier os-release !!) installer les derniers packages: 
+	sudo apt-get install libxft2 libxft2:i386
+	sudo apt install libncurses5
+
+Normalement on peut lancer la GUI de Vivado avec la commande 'vivado' depuis le terminal.

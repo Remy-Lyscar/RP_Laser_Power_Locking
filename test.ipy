@@ -44,7 +44,7 @@ SEQ = False
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
 
-p = Pyrpl('new_test', hostname = HOSTNAME, reloadserver = True)
+p = Pyrpl('blue_422', hostname = HOSTNAME, reloadserver = True)
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
@@ -75,7 +75,7 @@ s.input2 = 'out1'
 s.trigger_source = 'immediately'
 
 
-ACQ = True 
+ACQ = False
 if ACQ: 
     
     times, signal  = [], []

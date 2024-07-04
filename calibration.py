@@ -5,10 +5,10 @@ import pandas as pd
 import pickle 
 import os  
 from scipy.optimize import curve_fit
-import scienceplots 
+# import scienceplots 
 
 
-plt.style.use('science')
+# plt.style.use('science')
 
 
 
@@ -95,21 +95,18 @@ P = np.array([31, 25, 19, 35.5, 42.5, 47.5, 53.5, 59, ])
 
 # Erreurs: +- 0.5 microW
 
-def linear_fit(x, a, b): 
-    return a*x + b
+# def linear_fit(x, a, b): 
+#     return a*x + b
 
 
-plt.plot(V,P, 'b.')
-plt.xlabel ('Photodiode Voltage (V)')
-plt.ylabel('Laser power (microWatts)')
-plt.rc('axes', titlesize=20)
-plt.rc('axes', labelsize = 20)
-plt.grid()
-popt, pcov = curve_fit(linear_fit, V, P)
-a = popt[0]
-b = popt[1]
-plt.plot(V, linear_fit(V, a, b), color = 'red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
-perr3 = np.sqrt(np.diag(pcov))
-plt.legend()
-plt.show()
-
+# plt.plot(V,P, 'b.')
+# plt.xlabel ('Photodiode Voltage (V)')
+# plt.ylabel('Laser power (microWatts)')
+# plt.grid()
+# popt, pcov = curve_fit(linear_fit, V, P)
+# a = popt[0]
+# b = popt[1]
+# plt.plot(V, linear_fit(V, a, b), color='red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
+# perr3 = np.sqrt(np.diag(pcov))
+# plt.legend()
+# plt.show()
