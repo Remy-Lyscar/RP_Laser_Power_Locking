@@ -1,0 +1,69 @@
+Ceci est une notice explicative pour installer et utiliser pyrpl (sur linux)
+
+
+1) Installation d'Anaconda
+Suivre les instructions sur le site d'Anaconda pour installer Anaconda3: https://docs.anaconda.com/anaconda/install/linux/
+
+
+2) Environnement virtuel: 
+Créer un environnement virtuel pour pyrpl avec la commande suivante: 
+
+	conda create -y -n pyrpl-env python=3.6 numpy scipy paramiko pandas nose pip pyqt qtpy pyqtgraph pyyaml
+
+-> -y (pour 'yes') permet d'accepter automatiquement toutes les demandes qui pourraient être fait à l'utilisateur
+-> -n (pour 'name') permet de spécifier un nom pour l'environnement, ici 'pyrpl-env'
+-> Il faut impérativement précison python = 3.6 pour éviter tout problème de compatibilité
+
+Activer ensuite l'environnement avec: 
+	conda activate pyrpl-env
+
+
+3) Installation de Spyder: 
+Directement dans l'environnement virtuel : 
+	conda install spyder 
+	
+
+4) Lancement de pyrpl: 
+Dans la console de spyder: 
+	pip install pyrpl
+Ensuite on peut importer pyrpl et travailler sur la RedPitaya: 
+	from pyrpl import Pyrpl
+	
+Rq: Il peut être aussi nécessaire d'installer le package 'quamash': 
+	pip install quamash
+	
+5) Dernière étape: 
+Si le message d'erreur suivant apparaît lors du lancement de l'interface graphique de pyrpl avec p=Pyrpl()
+	AttributeError: module 'qtpy.QtCore' has no attribute 'pyqtBoundSignal'
+	
+Il faut forcer le downgrade de qtpy avec la commande:
+	pip install qtpy==1.9.0
+	
+	
+	
+SpectrumAnalyzer: 
+Pour l'instant il n'est pas possible de plot un quelconque spectre, que ce soit dans la GUI ou dans Spyder (je n'ai vu un spectre qu'une seule fois...)
+
+J'ai rencontré les erreurs suivantes: 
+	- AttributeError: numpy.fft has no attribute fftpack: il faut downgrade numpy à une version antérieure à 1.17 -> pip install numpy==1.16.0
+	- AttributeError: SpecAnWidget has no attribute plot_item -> il faut commenter (ce n'est pas idéal mais le problème ne semble pas avoir été résolu 
+	sur PyRPL) la ligne 174 de spec_an_widget.py, qui appelle plot_item
+
+
+	- Mais le problème persiste quand j'ouvre une session PyRPL et que le message suivant s'affiche
+	"INFO:pyrpl.modules:Calling setup() for slow_output.assisted_design ..." 
+	
+	
+	
+Création d'un nouvel environnement avec le SpectrumAnalyzer et surtout la fonctionnalité de lock/hold pour le PID: 
+
+	- Créer un environnement pyrpl-env3
+	- Installer la branche que l'on veut directement depuis github: pip install -e git+https://github.com/lneuhaus/pyrpl@max_hold_no_iir#egg=pyrpl
+	- On a un fichier .egg nommé pyrpl, que l'on peut extraire et mettre dans : 
+		/home/ipiq/anaconda3/envs/pyrpl-env3/lib/python3.6/site-packages/
+	- on peut ensuite utiliser comme précédemment l'environnement
+	
+	
+
+
+
