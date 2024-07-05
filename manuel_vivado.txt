@@ -36,3 +36,5 @@ Enfin on peut (si l'on a bien remis la bonne version dans le fichier os-release 
 	sudo apt install libncurses5
 
 Normalement on peut lancer la GUI de Vivado avec la commande 'vivado' depuis le terminal.
+Pour faire ça, il faut au préalable éxécuter en se plaçant dans le dossier: /opt/Xilinx/Vivado/2020.1 la commande: 
+	source settings64.sh 
