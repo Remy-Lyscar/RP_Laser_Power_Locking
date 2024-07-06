@@ -31,8 +31,8 @@ if not os.path.exists(figures_dir):
     
 
 
-free = pickle.load(open(os.path.join(df_dir,'free_running_signal_mer_26_juin.pkl'), "rb"))
-locked = pickle.load(open(os.path.join(df_dir,'locked_laser_mer_26_juin.pkl'), "rb"))
+free = pickle.load(open(os.path.join(df_dir,'free_running_signal_jeu_4_juillet.pkl'), "rb"))
+locked = pickle.load(open(os.path.join(df_dir,'locked_laser_jeu_4_juillet.pkl'), "rb"))
 
 times_free = free['times']
 times_locked = locked['times']

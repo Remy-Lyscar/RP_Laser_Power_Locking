@@ -10,6 +10,7 @@ import allantools
 from scipy.optimize import curve_fit
 import scienceplots 
 from numpy.fft import fft
+from scipy.stats import norm 
 # import pathlib
 # import matplotlib as mpl
 
@@ -31,8 +32,8 @@ if not os.path.exists(figures_dir):
     
 
 ### Data ###
-free = pickle.load(open(os.path.join(df_dir,'free_running_signal_mer_26_juin.pkl'), "rb"))
-locked = pickle.load(open(os.path.join(df_dir,'locked_laser_mer_26_juin.pkl'), "rb"))
+free = pickle.load(open(os.path.join(df_dir,'free_running_signal_jeu_4_juillet.pkl'), "rb"))
+locked = pickle.load(open(os.path.join(df_dir,'locked_laser_jeu_4_juillet.pkl'), "rb"))
 
 times_free = free['times']
 times_locked = locked['times']
@@ -85,8 +86,8 @@ x_bounds = ax.get_xbound()
 y_bounds = ax.get_ybound()
 ax.set_xlim(x_bounds[0], x_bounds[1])
 ax.set_ylim(y_bounds[0], y_bounds[1])
-plt.hlines(y_up2, x_bounds[0] ,x_bounds[1], colors ='orange', linestyles='dashed')
-plt.hlines(y_down2, x_bounds[0] ,x_bounds[1], colors='orange', linestyles='dashed')
+# plt.hlines(y_up2, x_bounds[0] ,x_bounds[1], colors ='orange', linestyles='dashed')
+# plt.hlines(y_down2, x_bounds[0] ,x_bounds[1], colors='orange', linestyles='dashed')
 plt.hlines(y_up, x_bounds[0] ,x_bounds[1], colors='red', linestyles='dashed', zorder=1, label = f'std = {d:.4f}')
 plt.hlines(y_down, x_bounds[0] ,x_bounds[1], colors='red', linestyles='dashed', zorder=1, label = f'red bandwidth: {y_up - y_down:.4f} microWatts')
 plt.hlines(m, x_bounds[0] ,x_bounds[1], colors='black', linestyles='dashed', zorder=1, label = f'mean = {m:.4f}') 
@@ -96,8 +97,8 @@ plt.legend(fontsize = 20)
 plt.xlabel('times (seconds)')
 plt.ylabel('Power (microWatts) ')
 plt.title('Power of the blue laser (422nm) : free-running')
-plt.rc('axes', titlesize=20)
-plt.rc('axes', labelsize = 20) 
+plt.rc('axes', titlesize=40)
+plt.rc('axes', labelsize = 40) 
 plot_file = os.path.join(figures_dir, "free_laser.png")
 plt.grid()
 plt.show()
@@ -105,66 +106,108 @@ plt.show()
 
 
 
-# def fit_function(x, a, b, c, d, e, f, g, h, i, j, k, l):
-#     return a*x**11 + b*x**10 + c*x**9 + d*x**8+ e*x**7 + f*x**6 + g*x**5 + h*x**4 + i*x**3 + j*x**2 +k*x + l 
+### Polynomial fitting: 
+    
+def fit_function(x, a, b, c,d, e):  
+    return a*x*4 + b*x**3 + c*x**2 + d*x +e 
 
 
+### On va fitter par segments de 1000s, soit environ 2000 points
 
-# popt, pcov = curve_fit(fit_function, times_free, signal_free)
-# a, b, c, d, e, f, g, h, i, j,  k, l = popt[0], popt[1], popt[2], popt[3], popt[4], popt[5], popt[6], popt[7], popt[8], popt[9], popt[10], popt[11]
+signal_free_seg = []
+times_free_seg = []
+
+Y_fit = []
+
+n = 1000
+q = len(times_free)//n
+r = len(times_free)%n
+
+for i in range(q): 
+    signal_free_seg.append(signal_free[i*n:(i+1)*n])
+    times_free_seg.append(times_free[i*n:(i+1)*n])
+    
+    popt, pcov = curve_fit(fit_function, times_free_seg[i], signal_free_seg[i])
+    a, b, c, d, e = popt[0], popt[1], popt[2], popt[3], popt[4]
+    # perr = np.sqrt(np.diag(pcov))
+    Y_fit.append(fit_function(times_free_seg[i], a, b, c, d, e))
+    
+
+
+signal_free_seg.append(signal_free[q*n:])
+times_free_seg.append(times_free[q*n:])
+
+popt, pcov = curve_fit(fit_function, times_free_seg[q], signal_free_seg[q])
+a, b, c, d,e  = popt[0], popt[1], popt[2], popt[3], popt[4]
 # perr = np.sqrt(np.diag(pcov))
-# fig = plt.figure()
-# plt.plot(times_free, signal_free, times_free, fit_function(times_free, a, b, c, d, e, f, g, h, i, j, k, l))
-# plt.show()
+Y_fit.append(fit_function(times_free_seg[q], a, b, c, d, e))
 
 
-# Y = fit_function(times_free, a, b, c, d, e, f, g,h, i, j , k , l)
-# err_free = [signal_free[i] - Y[i] for i in range(len(times_free))]
+Y_fit = np.concatenate([Y_fit[0], Y_fit[1], Y_fit[2], Y_fit[3], Y_fit[4], Y_fit[5], Y_fit[6]])
 
+# print(Y_fit)
 
-
-# Y = []
-# T = []
-# nmoy = 20
-# N = int(len(signal_free)/nmoy)
-# for i in range(0, N-1, nmoy): 
-#     for k in range(nmoy): 
-#         Y.append(sum(signal_free[i*nmoy:(i+1)*nmoy]))
-#         T.append((times_free[(i+1)*nmoy] - times_free[i*nmoy])/2)
-        
-
-
-# fig = plt.figure()
-# plt.plot(times_free, signal_free, color = 'cornflowerblue', marker = '.', linestyle = '', zorder = 0)
-# plt.plot(T, Y, label = 'post-processing average')
-# plt.legend(fontsize = 20) 
-# plt.xlabel('times (seconds)')
-# plt.ylabel('Power (microWatts) ')
-# plt.title('Power of the blue laser (422nm) : free-running')
-# plt.rc('axes', titlesize=20)
-# plt.rc('axes', labelsize = 20) 
-# plt.grid()
-# plt.show()
+fig = plt.figure() 
+plt.plot(times_free, signal_free, color = 'cornflowerblue', linestyle = '', marker = '.', zorder = 0)
+plt.plot(times_free,Y_fit, color = 'red', zorder = 1, label = 'polynomial fitting' )
+plt.legend(fontsize = 20)
+plt.xlabel('times (seconds)')
+plt.ylabel('Power (microWatts) ')
+plt.title('Power of the blue laser (422nm) : free-running')
+plt.rc('axes', titlesize=20)
+plt.rc('axes', labelsize = 20) 
+plt.grid()
+plt.show()
 
 
 
-
-# err_free = []
-# errstd = np.std(err_free, ddof = 1)
+err_free = [signal_free[i] - Y_fit[i] for i in range(len(signal_free))]
 
 
-# fig = plt.figure()
-# plt.hist(err_free, bins = 'auto', zorder = 0)
-# ax=plt.gca()
-# x_bounds = ax.get_xbound()
-# y_bounds = ax.get_ybound()
-# ax.set_xlim(x_bounds[0], x_bounds[1])
-# ax.set_ylim(y_bounds[0], y_bounds[1])
+mean, std = norm.fit(err_free)
+
+
+fig = plt.figure()
+plt.hist(err_free, bins = 'auto', zorder = 0, color = 'cornflowerblue', density = True)
+ax=plt.gca()
+x_bounds = ax.get_xbound()
+y_bounds = ax.get_ybound()
+ax.set_xlim(x_bounds[0], x_bounds[1])
+ax.set_ylim(y_bounds[0], y_bounds[1])
 # plt.vlines(errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1, label = f'std: {errstd:.4f}' )
 # plt.vlines(-errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1)
 # plt.vlines(2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
 # plt.vlines(-2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
-# plt.xlabel('Dispersion (microWatts)')
-# plt.ylabel('Number of points')
-# plt.legend()
-# plt.show()
+plt.xlabel('Dispersion (microWatts)')
+plt.ylabel('Number of points')
+# plt.rc('axes', titlesize=20)
+# plt.rc('axes', labelsize = 20) 
+x =np.linspace(x_bounds[0], x_bounds[1], 100)
+plt.plot(x, norm.pdf(x, mean, std), zorder = 1, color = 'red', label = f'Gaussian fitting: \n mean = {mean:.4f} \n std = {std:.4f}')
+plt.legend()
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -12,6 +12,7 @@ import scienceplots
 from numpy.fft import fft
 # import pathlib
 # import matplotlib as mpl
+from scipy.stats import norm
 
 # pathlib.Path.rmdir( mpl.get_cachedir())
 
@@ -31,8 +32,8 @@ if not os.path.exists(figures_dir):
     
 
 
-free = pickle.load(open(os.path.join(df_dir,'free_running_signal_mer_26_juin.pkl'), "rb"))
-locked = pickle.load(open(os.path.join(df_dir,'locked_laser_mer_26_juin.pkl'), "rb"))
+free = pickle.load(open(os.path.join(df_dir,'free_running_signal_jeu_4_juillet.pkl'), "rb"))
+locked = pickle.load(open(os.path.join(df_dir,'locked_laser_jeu_4_juillet.pkl'), "rb"))
 
 times_free = free['times']
 times_locked = locked['times']
@@ -86,8 +87,8 @@ x_bounds = ax.get_xbound()
 y_bounds = ax.get_ybound()
 ax.set_xlim(x_bounds[0], x_bounds[1])
 ax.set_ylim(y_bounds[0], y_bounds[1])
-plt.hlines(y_up2, x_bounds[0] ,x_bounds[1], colors ='orange', linestyles='dashed')
-plt.hlines(y_down2, x_bounds[0] ,x_bounds[1], colors='orange', linestyles='dashed')
+# plt.hlines(y_up2, x_bounds[0] ,x_bounds[1], colors ='orange', linestyles='dashed')
+# plt.hlines(y_down2, x_bounds[0] ,x_bounds[1], colors='orange', linestyles='dashed')
 plt.hlines(y_up, x_bounds[0] ,x_bounds[1], colors='red', linestyles='dashed', zorder=1, label = f'std = {d:.4f}')
 plt.hlines(y_down, x_bounds[0] ,x_bounds[1], colors='red', linestyles='dashed', zorder=1, label = f'red bandwidth: {y_up - y_down:.4f} microWatts')
 plt.hlines(m, x_bounds[0] ,x_bounds[1], colors='black', linestyles='dashed', zorder=1, label = f'mean = {m:.4f}') 
@@ -104,26 +105,28 @@ plt.show()
 
 
 
+err_locked = [signal_locked[i] - m for i in range(len(signal_locked))]
 
 
+mean, std = norm.fit(err_locked)
 
-err_locked = [v - m for v in signal_locked]
-bins = (ymax - ymin)/0.002 
-
-errstd = np.std(err_locked, ddof=1)
 
 fig = plt.figure()
-plt.hist(err_locked, bins = 'auto', zorder = 0)
+plt.hist(err_locked, bins = 'auto', zorder = 0, color = 'cornflowerblue', density = True)
 ax=plt.gca()
 x_bounds = ax.get_xbound()
 y_bounds = ax.get_ybound()
 ax.set_xlim(x_bounds[0], x_bounds[1])
 ax.set_ylim(y_bounds[0], y_bounds[1])
-plt.vlines(errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1, label = f'std: {errstd:.4f}' )
-plt.vlines(-errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1)
-plt.vlines(2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
-plt.vlines(-2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
+# plt.vlines(errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1, label = f'std: {errstd:.4f}' )
+# plt.vlines(-errstd, y_bounds[0], y_bounds[1], colors = 'red', linestyles = 'dashed', zorder = 1)
+# plt.vlines(2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
+# plt.vlines(-2*errstd, y_bounds[0], y_bounds[1], colors = 'orange', linestyles = 'dashed', zorder = 1)
 plt.xlabel('Dispersion (microWatts)')
 plt.ylabel('Number of points')
+# plt.rc('axes', titlesize=20)
+# plt.rc('axes', labelsize = 20) 
+x =np.linspace(x_bounds[0], x_bounds[1], 100)
+plt.plot(x, norm.pdf(x, mean, std), zorder = 1, color = 'red', label = f'Gaussian fitting: \n mean = {mean:.4f} \n std = {std:.4f}')
 plt.legend()
 plt.show()
