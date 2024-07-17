@@ -32,9 +32,6 @@ HOSTNAME = "192.168.1.208"
 # The config file, here 'blue422', is specific to each laser. The change on one config file 
 # does not affect the other lasers 
 
-# If environment = pyrpl_env, put monitor_server_name at monitor_server
-# If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
-# Do it automatically? Using environment variables ? 
 
 monitor_server_name = "monitor_server"
 p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
@@ -107,9 +104,6 @@ plt.show()
 df = p.spectrumanalyzer.frequencies[1] - p.spectrumanalyzer.frequencies[0]
 print(sum(data)*df)
 
-
-
-# Study the following remark from the pyrpl documentation
 
 # As expected, the integral of the noise spectrum over the whole frequency range gives 
 # the variance of the noise. To know more about spectrum analysis in Pyrpl, and in particular, 

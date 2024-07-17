@@ -9,7 +9,15 @@ Created on Fri Jun 28 10:09:05 2024
 
 """
 Power-locking of the blue laser 422 nm
-Can be included in a sequence (TTL)
+
+
+Set ACQ = True and the parameters of the acquisition to launch data acquisition
+The datapoints are collected in pandas dataframe and saved using the module pickle
+One just needs to load the pickle file (.pkl) in a python script and deal with it as a pandas dataframe
+
+
+The calibration is given so that one chooses the power wanted, and the voltage setpoint 
+of the PID is adjusted using the calibration
 
 """
 
@@ -22,6 +30,8 @@ import pandas as pd
 import os 
 from pyrpl import Pyrpl
 import pickle 
+import socket
+import threading
 
 
 
@@ -32,36 +42,36 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # /home/ipiq/anaconda3/envs/pyrpl-env(3)/lib/python3.6/site-packages/pyrpl/
 
 
+
 ##### Type of power-locking #####
 
-# Do we have to acquire data?
-ACQ = True
-# Do we want the lock to be included in a sequence, and to react to a trigger ? 
-SEQ = False
-
+# Acquire data? 
+ACQ = False # If set to True, it may be necessary to do multi-threading to deal acquisition in parallel 
+            # with the connexion to the LAN to get power setpoints instructions (see below)
 
 
 ##### Calibration of the laser #####
 
 # Powermeter: FieldMaster 
 
+# See 'calibration.py' to see how the calibration was made
 
+a = 570.2380952772035
+b = 7.761904759753572
 
+def V(P): 
+    return (P-b)/a
 
 
 ##### RedPitaya and PyRPL #####
 
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
-# The config file, here 'blue422', is specific to each laser. The change on one config file 
-# does not affect the other lasers 
-
-# If environment = pyrpl_env, put monitor_server_name at monitor_server
-# If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
-# Do it automatically? Using environment variables ? 
+# The config file, here 'blue422nm', is specific to each laser. The changes on one config file 
+# do not affect the other lasers 
 
 monitor_server_name = "monitor_server"
-p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
+p = Pyrpl('blue422nm', hostname = HOSTNAME, reloadserver = True)
 
 
 # # Access the RedPitaya object in charge of communicating with the board
@@ -74,7 +84,7 @@ r = p.rp
 pid = r.pid0
 pid1 = r.pid1
 pid2 = r.pid2
-pid.output_direct = 'off'
+pid.output_direct = 'off' 
 pid1.output_direct = 'off'
 pid2.output_direct = 'off'
 
@@ -94,12 +104,44 @@ s.trigger_source = 'immediately'
 
 
 
-# Just setup the parameters of the PID, so that the lock is activated immediately 
+##### Connexion to the LAN to get lock instructions #####
+
+# This program listens to the local network, waiting for connexions and sendings of the 
+# power setpoins instructions
+# It acts as a server
+
+
+# with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as connexion_serveur: 
+#     connexion_serveur.connect((nom_hote_serveur, port_d_ecoute_serveur)) 
+#     connexion_serveur.send(donnees_envoyees) 
+#     donnees_recues = connexion_serveur.recv(1024) 
+#     print(donnees_recues)
+
+
+
+# listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# listen_socket.bind(())
+
+# listen_socket.listen()
+
+
+
+
+
+# Set up the parameters of the PID
+# It may be necessary to first open a PyRPL session just in order 
+# to see the current value of the photodiode voltage and to adjust
+# for example the parameter 'ival', that acts as a voltage offset and can be necessary to lock to 
+# setpoints which are quite far of the current value of the photodiode voltage.
+
+
 pid.input = 'in1'
-pid.output_direct = 'out1'
-pid.setpoint = 0.07
-pid.p = -100
-pid.i = -0.01
+# pid.paused = True  # By default the session PyRPl starts with a paused PID 
+pid.pause_gains = 'pid'
+pid.output_direct = 'out1'  
+pid.setpoint = 0.1
+pid.p = 100
+pid.i = 0.001
 pid.d = 0
 pid.ival = 0  # Usually the first thing to do is to adjust this parameter with the GUI 
 pid.inputfilter = [0, 0, 0, 0]
@@ -109,14 +151,15 @@ pid.min_voltage = -1
 
 
 
+
 if ACQ: 
     
     times, signal  = [], []
     duration = 3600 # seconds
-    sampling_rate = 2 # Hz
+    sampling_rate = 2 # Hz, the maximum using Python seems to be around 2 kHz
     
     # Name of the file containing the dataframe of the acquired data 
-    acq_file_name  =  'locked_laser_jeu_4_juillet_without_average.pkl'
+    # acq_file_name  =  
     
     t0 = time.time()
     
@@ -142,3 +185,6 @@ if ACQ:
     
     
     pickle.dump(df, open(os.path.join(current_dir, acq_file_name), 'wb'))
+    
+    # A pickle file can be loaded using the instruction : 
+    #    <name> = pickle.load(open(<path of the .pkl file, be it absolute or relative>, "rb"))

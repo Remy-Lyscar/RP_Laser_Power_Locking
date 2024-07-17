@@ -16,7 +16,6 @@ from pyrpl import Pyrpl
 import pickle 
 
 
-
 # Location of the file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -73,42 +72,61 @@ s = r.scope
 s.input1 = 'in1'
 s.input2 = 'out1'
 s.trigger_source = 'immediately'
+s.decimation = 65536
+print(s.decimation)
+
+
+pid.output_direct = 'out1'
+pid.setpoint = 0.1
+
+sleep(5)
+
+pid.setpoint = 0.05
+
+sleep(5)
+
+pid.setpoint = 0.1
+
+sleep(5)
+
+pid.setpoint = 0.05
 
 
 ACQ = False
 if ACQ: 
     
     times, signal  = [], []
-    duration = 60 # seconds
+    duration = 5 # seconds
     sampling_rate = 2 # Hz
     
     # Name of the file containing the dataframe of the acquired data 
-    acq_file_name  =  'test.pkl'
+    # acq_file_name  =  'test.pkl'
     
     t0 = time.time()
     
     while time.time() - t0 < duration: 
-        sleep(1/sampling_rate)
+        # sleep(1/sampling_rate)
         times.append(time.time()-t0)
         signal.append(s.voltage_in1)
         
         
-    fig = plt.figure()
-    plt.plot(times, signal, label = 'blue laser: 422 nm')
-    plt.xlabel('times (seconds)')
-    plt.ylabel('Photodiode voltage (V)')
-    plt.legend()
-    plt.plot()
+    print(len(signal))
+    # fig = plt.figure()
+    # plt.plot(times, signal, label = 'blue laser: 422 nm')
+    # plt.xlabel('times (seconds)')
+    # plt.ylabel('Photodiode voltage (V)')
+    # plt.legend()
+    # plt.plot()
     
     
-    df = pd.DataFrame({
-                        'times': times, 
-                        'signal': signal} )
+    # df = pd.DataFrame({
+    #                     'times': times, 
+    #                     'signal': signal} )
     
     
     
     
-    pickle.dump(df, open(os.path.join(current_dir, acq_file_name), 'wb'))
+    # pickle.dump(df, open(os.path.join(current_dir, acq_file_name), 'wb'))
 
 
 
