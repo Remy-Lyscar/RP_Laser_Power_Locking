@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 #
-# Communicate with arduino ilock code 
-# v2 adds the ilock_id parameter (useful when several ilock arduino are deployed)  
-# v3 adds functions to control ilock from a script
-# to log the ilock broadcast launch the following command line :
-# stdbuf -oL ./ilock3.py <ilock_id> w<channel> <ack> >> <file_name>
-# to display this log use :
-# tail -f <file_name>
+# Communicate with RedPitaya ilock code implemented with PyRPL module
 
 import sys, time
 import socket, string
@@ -14,16 +8,21 @@ import threading
 
 directory = "/home/ipiq/diogene/diogene_manips/scripts/common/libs_python"
 
-ip=('192.168.1.223', '192.168.1.224', '192.168.1.225', '192.168.1.226')
-port=23
-udpport=(9890)
-threads=[]
+ip = "192.168.1.21"  # So far only the mini1 computer can communicate with the RP using a specific branch of PyRPl
+port=1025  # port on the server side, ie on mini1 for the listen_socket 
+# see the server code at: /home/ipiq/diogene/Users/Valentin/Codes/RedPitaya/Codes RedPitaya/power_lock_422.ipy
+
+# udpport=(9890)
+# threads=[]
 """
 ack : 'acknoledge', lecture de la reponse de l'arduino 
 """
 
 def set_setpoint(ilock_id,channel,setpoint,ack=0):
-    message = "@{ch:d}:2:{setpt:.0f}:".format(ch = channel,setpt = setpoint)
+    # set_setpoint must be called with ilock_id = "192.168.1.21" to avoid conflits with the ilock_id of the Arduino cards
+    message = "@{ch:d}:2:{setpt:d}:".format(ch = channel,setpt = setpoint)
+    # the setpoint part of the message is sent as an int to match the regex pattern in 'power_lock_422.ipy'
+    # Anyway this value is initially an int. The conversion in float will be done in 'power_lock_422.ipy'
     data = configure(ilock_id,message,ack)
     return data
     
@@ -54,17 +53,19 @@ def set_kp(ilock_id,channel,KP,ack=0):
       
 
       
-def configure(ilock_id, message, ack):   
+def configure(ilock_id = "192.168.1.21", message, ack = 0):   
 
     ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ilock_socket.connect((ip[ilock_id], port))
-    ilock_socket.send(message.strip())
-
+    ilock_socket.connect(ilock_id, port)) 
+    ilock_socket.sendall(message.strip())  # The message contains the instruction for intensity setpoint
+    # .sendall() makes it automatic to send all data to the server, even though
+    # the size of the data is larger than the size of a server buffer
+    
     if (ack==1):
         print("ready to receive data")
         data=""
         buf = ilock_socket.recv(1)
-
+    
         data = buf
         while ((buf != '!') and (buf)):
             buf = ilock_socket.recv(1)
@@ -74,46 +75,77 @@ def configure(ilock_id, message, ack):
     else:
         ilock_socket.close()
         return 1
+    
 
 
-def udplisten(ilock_id,channel,l):
-    """
-    Continuously listen to broadcasted data     
-    """
-    ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    
-    ilock_socket.bind(('', udpport+2*ilock_id+channel))
-    while(1):
-        dataFromClient, address = ilock_socket.recvfrom(l)
-        print("{0:.2f} {1:s}".format(time.time(), dataFromClient))
+# def udplisten(ilock_id,channel,l):
+#     """
+#     Continuously listen to broadcasted data     
+#     """
+#     ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)    
+#     ilock_socket.bind(('', udpport+2*ilock_id+channel))
+#     while(1):
+#         dataFromClient, address = ilock_socket.recvfrom(l)
+#         print("{0:.2f} {1:s}".format(time.time(), dataFromClient))
         
     
-def getdata(ilock_id,channel, maxmsglen):
+# def getdata(ilock_id,channel, maxmsglen):
+#     """
+#     Returns one broadcasted dataline : 
+#         0 - RedPitaya_id 
+#         1 - channel
+#         2 - setpoint
+#         3 - raw_adc_reading
+#         4 - smoothed_adc_reading
+#         5 - proportional_correction
+#         6 - integral_correction
+#         7 - dac_output      
+#     if from_file is True, try to read it from the last log in the file ilock<ilock_id><channel>.tmp
+#     """        
+#     ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#     try : 
+#         ilock_socket.bind(('', udpport+2*ilock_id+channel))
+#         # get one line
+#         dataFromClient, address = ilock_socket.recvfrom(maxmsglen)
+#         return string.split(dataFromClient)
+#     finally :
+#         ilock_socket.close()
+
+
+# A new function getdata using TCP is implemented below,
+# but so far communication from mini1 has not been implemented. This programm
+# does not wait for any response and getdata should not be used in a sequence using RP ilock
+# until the response from 'power_lock_422.ipy' on mini1 has been implemented 
+
+def getdata(ilock_id, channel, maxmsglen):
     """
-    Returns one broadcasted dataline : 
-        0 - Arduino_id 
-        1 - channel
-        2 - setpoint
-        3 - raw_adc_reading
-        4 - smoothed_adc_reading
-        5 - proportional_correction
-        6 - integral_correction
-        7 - dac_output      
-    if from_file is True, try to read it from the last log in the file ilock<ilock_id><channel>.tmp
-    """        
-    ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try : 
-        ilock_socket.bind(('', udpport+2*ilock_id+channel))
-        # get one line
-        dataFromClient, address = ilock_socket.recvfrom(maxmsglen)
+       Returns one broadcasted dataline : 
+           0 - RedPitaya_id 
+           1 - channel
+           2 - setpoint
+           3 - raw_adc_reading
+           4 - smoothed_adc_reading
+           5 - proportional_correction
+           6 - integral_correction
+           7 - dac_output
+    """
+    
+    getdata_port = ""
+    
+    getdata_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try: 
+        getdata_socket.bind(('', getdata_port))
+        getdata_socket.listen()
+        client_socket, client_address = getdata_socket.accept()
+        dataFromClient, address = getdata_socket.recvfrom(maxmsglen)
         return string.split(dataFromClient)
-    finally :
-        ilock_socket.close()
-       
+    finally: 
+        getdata_socket.close()
 
 
 if __name__ == '__main__' :
 
-    ilock_id=int(sys.argv[1])
+    ilock_id=int(sys.argv[1]) # command-line arguments start at index 1, index 0 is reserved for the name of the python file 
     msg=sys.argv[2]
     ack=int(sys.argv[3])
     if msg[0]=='l':
@@ -122,7 +154,7 @@ if __name__ == '__main__' :
         udplisten(ilock_id,int(msg[1]),1024)
     else:
         print('ilock_id: ', ilock_id, 'ip ', ip[ilock_id], 'message: ', msg, ' ack:',ack)
-        print(configure(ilock_id, msg, ack))
+        print(configure(ilock_id, msg, ack)) # Should return 1 if everything went well 
         
         
         
