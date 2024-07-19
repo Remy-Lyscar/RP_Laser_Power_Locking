@@ -94,10 +94,11 @@ s.trigger_source = 'immediately'
 
 
 # Setup the parameters of the PID before to get the instructions for power setpoint
+# It may not be optimized yet
 pid.input = 'in1'
 pid.pause_gains = 'pid'
-pid.p = 100
-pid.i = 0.001
+pid.p = 20
+pid.i = 0.01
 pid.d = 0
 pid.ival = 0 
 pid.inputfilter = [0, 0, 0, 0]
@@ -113,7 +114,7 @@ pid.min_voltage = -1
 # It acts as a server receiving data from 'ilock_RedPitaya.py', inspired by 'ilock3.py' for Arduino (it can be used exactly the same way)
 
 port = 1025  # arbitrary
-ip = "192.168.1.21"  # mni1 IP
+ip = "192.168.1.21"  # mini1 IP
 
 
 
@@ -183,6 +184,7 @@ class ClientThread(threading.Thread):
                 self.new_setpoint = V(power_setpoint)
                 print(self.new_setpoint)
                 pid.setpoint = float(self.new_setpoint)
+                pid.ival = 0  # to reset offset in the correction signal 
                 pid.output_direct = 'out1'
                 
                 
@@ -194,10 +196,6 @@ class ClientThread(threading.Thread):
 
 ##### Program begins to run the threads #####
 
-
-### The three next lines have to be commented if the listen_socket has already been 
-# bound to a specific port. Otherwise, if listen_socket is not defined when running 
-# the programm, then uncomment them, run, and comment them again to avoid socket error or OSerror.
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
