@@ -15,13 +15,13 @@ The process of the calibration was the following.
     - Use the PID to lock the photodiode voltage at different values of voltage setpoint
     - Measure the power of the laser after the semi-reflective blade for each value of the voltage setpoint
     - Plot power P as a function of voltage V and make a linear fitting
-    - coefficients of the calibration fit are used in the programm 'power_lock_422.ipy'
+    - coefficients of the calibration fit are used in the programm 'power_lock_422_sequence.ipy'
 
 '''
 
 
-V = np.array([0.04, 0.03, 0.02, 0.05, 0.06, 0.07, 0.08, 0.09])
-P = np.array([31, 25, 19, 35.5, 42.5, 47.5, 53.5, 59, ])
+V = np.array([0.05, 0.1, 0.147, 0.195, 0.244, 0.292, 0.264, 0.216, 0.12, 0.169, 0.024, 0.072])
+P = np.array([37, 65.5, 94, 120, 148, 174, 159, 130, 76, 103, 21, 48.5])
 
 
 def linear_fit(x, a, b): 

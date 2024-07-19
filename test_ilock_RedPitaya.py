@@ -12,7 +12,7 @@ import sys,time,argparse
 
 
 
-ilock_id_RP = "192.168.1.208"
+ilock_id_mini1 = "192.168.1.21"
 channel = 1  # in1/out1 of the RedPitaya
 
 parser = argparse.ArgumentParser(description="launch a live of the PM counts",
@@ -26,6 +26,6 @@ parser.add_argument('-i','--ilock_setpoint', type = int,
 args = parser.parse_args()
 
 
-ilock.set_setpoint(ilock_id_RP, channel, args.ilock_setpoint)
+ilock.set_setpoint(ilock_id_mini1, channel, args.ilock_setpoint)
 
 

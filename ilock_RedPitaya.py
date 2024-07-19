@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Communicate with RedPitaya ilock code implemented with PyRPL module
+# Server side is on mini1 and called 'power_lock_422_sequence.py' (for blue 422 nm cooling laser)
 
 import sys, time
 import socket, string
@@ -53,10 +54,10 @@ def set_kp(ilock_id,channel,KP,ack=0):
       
 
       
-def configure(ilock_id = "192.168.1.21", message, ack = 0):   
+def configure(ilock_id, message, ack = 0):   
 
     ilock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ilock_socket.connect(ilock_id, port)) 
+    ilock_socket.connect((ilock_id, port)) 
     ilock_socket.sendall(message.strip())  # The message contains the instruction for intensity setpoint
     # .sendall() makes it automatic to send all data to the server, even though
     # the size of the data is larger than the size of a server buffer

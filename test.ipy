@@ -4,6 +4,9 @@
 Created on Wed Jun 26 11:46:42 2024
 
 @author: ipiq
+
+
+File to make any kind of tests with PyRPL
 """
 
 import time 
