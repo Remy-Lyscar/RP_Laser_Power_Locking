@@ -11,6 +11,7 @@ import ilock_RedPitaya as ilock
 import sys,time,argparse
 
 
+directory = "/home/ipiq/diogene/diogene_manips/scripts/common/libs_python"
 
 ilock_id_mini1 = "192.168.1.21"
 channel = 1  # in1/out1 of the RedPitaya

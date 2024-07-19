@@ -20,7 +20,7 @@ import threading
 import re # regular expressions
 
 
-
+# location: /home/ipiq/diogene/Users/Valentin/Codes/RedPitaya/Codes RedPitaya
 
 
 ##### Connexion to the LAN to get lock instructions in a separate thread #####

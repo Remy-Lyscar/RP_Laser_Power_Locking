@@ -7,6 +7,7 @@ import sys, time
 import socket, string
 import threading
 
+
 directory = "/home/ipiq/diogene/diogene_manips/scripts/common/libs_python"
 
 ip = "192.168.1.21"  # So far only the mini1 computer can communicate with the RP using a specific branch of PyRPl

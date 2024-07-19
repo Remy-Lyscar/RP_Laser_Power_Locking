@@ -32,7 +32,7 @@ import re # regular expressions
 
 
 
-# Location of the file
+# Location of the file: /home/ipiq/diogene/Users/Valentin/Codes/RedPitaya/Codes RedPitaya
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # If needed, this is the location of the PyRPL library 
