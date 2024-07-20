@@ -23,26 +23,23 @@ import pandas as pd
 import pickle 
 import os 
 # import path
-import allantools 
 # import tqdm 
-import scienceplots
-import numpy.fft as fft 
-from scipy.signal import welch 
-from scipy.signal import periodogram
 
 
 # plt.style.use('science')
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
-p = Pyrpl('test3', hostname = HOSTNAME)
+p = Pyrpl('blue422', hostname = HOSTNAME)
 
 
 # # Access the RedPitaya object in charge of communicating with the board
 r = p.rp
 
 s = r.scope
+s.average = False
 
 # Reset of all the modules that can be set to 'out1'
 
@@ -68,11 +65,11 @@ times, signal  = [], []
 
 
 t0 = time.time()
-fs = 50000 # Hz
-duration = 5 # seconds
+fs = 1000000 # Hz
+duration = 10 # seconds
 
 while time.time() - t0 < duration: 
-    sleep(1/fs)
+    # sleep(1/fs)
     times.append(time.time()-t0)
     signal.append(s.voltage_in1)
 
@@ -118,76 +115,80 @@ while time.time() - t0 < duration:
 ### Power-locked signal ###
 
 
-t = np.array(times)
+# t = np.array(times)
 
 
-# FFT  
-dft = fft.fft(signal)
-freq_fft = fft.fftfreq(t.shape[-1], d=1/fs)
-dft = np.abs(dft)
+# # FFT  
+# dft = fft.fft(signal)
+# freq_fft = fft.fftfreq(t.shape[-1], d=1/fs)
+# dft = np.abs(dft)
 
-plt.plot(freq_fft, dft) 
-plt.xlabel('frequency (Hz)')
-plt.ylabel('Amplitude')
-plt.title('FFT of the photodiode signal')
-plt.show()
-
-
-
-# PSD : periodogram 
-freq_per, power = periodogram(signal, fs)
-
-plt.semilogy(freq_per, power)
-plt.title('Periodogram of the photodiode voltage')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('PSD')
-plt.show()
+# plt.plot(freq_fft, dft) 
+# plt.xlabel('frequency (Hz)')
+# plt.ylabel('Amplitude')
+# plt.title('FFT of the photodiode signal')
+# plt.show()
 
 
-# PSD : Welch Method
-nperseg = 1024
-freq_welch, psd_welch = welch(signal, fs)
-# nperseg = length of each segment for which the periodogram is computed
-# Shorter segments can lead to a smoother PSD estimate but may also decrease frequency resolution
+
+# # PSD : periodogram 
+# freq_per, power = periodogram(signal, fs)
+
+# plt.semilogy(freq_per, power)
+# plt.title('Periodogram of the photodiode voltage')
+# plt.xlabel('Frequency (Hz)')
+# plt.ylabel('PSD')
+# plt.show()
 
 
-# I have to give all the parameters, fs, duration, ... with the data and the plots 
-plt.semilogy(freq_welch, psd_welch)
-plt.title('PSD using Welch Method ')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('PSD (V²/Hz)')
-plt.tight_layout()
-plt.show()
+# # PSD : Welch Method
+# nperseg = 1024
+# freq_welch, psd_welch = welch(signal, fs)
+# # nperseg = length of each segment for which the periodogram is computed
+# # Shorter segments can lead to a smoother PSD estimate but may also decrease frequency resolution
+
+
+# # I have to give all the parameters, fs, duration, ... with the data and the plots 
+# plt.semilogy(freq_welch, psd_welch)
+# plt.title('PSD using Welch Method ')
+# plt.xlabel('Frequency (Hz)')
+# plt.ylabel('PSD (V²/Hz)')
+# plt.tight_layout()
+# plt.show()
 
 
 df_data = pd.DataFrame({
                     'times': times, 
                     'signal': signal} )
 
-df_fft = pd.DataFrame({
-                    'freq_fft': freq_fft,
-                    'fft': dft})
+# print(times)
 
-df_per = pd.DataFrame({
-                    'freq_per': freq_per, 
-                    'power': power} )
+print(len(signal))
 
-df_welch = pd.DataFrame({
-                    'freq_welch': freq_welch, 
-                    'psd_welch': psd_welch} )
+# df_fft = pd.DataFrame({
+#                     'freq_fft': freq_fft,
+#                     'fft': dft})
+
+# df_per = pd.DataFrame({
+#                     'freq_per': freq_per, 
+#                     'power': power} )
+
+# df_welch = pd.DataFrame({
+#                     'freq_welch': freq_welch, 
+#                     'psd_welch': psd_welch} )
 
 
-df_acq_settings = pd.DataFrame({
-                    'fs': [fs], 
-                    'duration': [duration]} )
+# df_acq_settings = pd.DataFrame({
+#                     'fs': [fs], 
+#                     'duration': [duration]} )
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
+# current_dir = os.path.dirname(os.path.abspath(__file__))
 
-pickle.dump(df_data, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_data_jeu_27_juin(2).pkl'), 'wb'))
-pickle.dump(df_fft, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_fft_jeu_27_juin(2).pkl'), 'wb'))
-pickle.dump(df_per, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_per_jeu_27_juin(2).pkl'), 'wb'))
-pickle.dump(df_welch, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_welch_jeu_27_juin(2).pkl'), 'wb'))
-pickle.dump(df_acq_settings, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_acqsettings_jeu_27_juin(2).pkl'), 'wb'))
+pickle.dump(df_data, open(os.path.join(current_dir, 'data_free_laser_lun_8_juillet.pkl'), 'wb'))
+# pickle.dump(df_fft, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_fft_jeu_27_juin(2).pkl'), 'wb'))
+# pickle.dump(df_per, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_per_jeu_27_juin(2).pkl'), 'wb'))
+# pickle.dump(df_welch, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_welch_jeu_27_juin(2).pkl'), 'wb'))
+# pickle.dump(df_acq_settings, open(os.path.join(current_dir, 'spectrum_analysis_free_laser_acqsettings_jeu_27_juin(2).pkl'), 'wb'))
 
 
 

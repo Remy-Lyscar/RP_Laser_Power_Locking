@@ -8,8 +8,15 @@ Created on Fri Jun 28 10:09:05 2024
 
 
 """
-Power-locking of the blue laser 422 nm
-Can be included in a sequence (TTL)
+Power-locking of the blue laser 422 nm: just a first vesion, can be used just for locking 
+using the GUI.
+For inclusion in a sequence, see 'power_lock_422_sequence.py' ! 
+
+
+The calibration is given so that one chooses the power wanted, and the voltage setpoint 
+of the PID is adjusted using the calibration
+
+
 
 """
 
@@ -22,6 +29,7 @@ import pandas as pd
 import os 
 from pyrpl import Pyrpl
 import pickle 
+import socket
 
 
 
@@ -32,19 +40,17 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # /home/ipiq/anaconda3/envs/pyrpl-env(3)/lib/python3.6/site-packages/pyrpl/
 
 
-##### Type of power-locking #####
-
-# Do we have to acquire data?
-ACQ = True
-# Do we want the lock to be included in a sequence, and to react to a trigger ? 
-SEQ = False
-
-
-
 ##### Calibration of the laser #####
 
 # Powermeter: FieldMaster 
 
+# See 'calibration.py' to see how the calibration was made
+
+a = 570.8734952583208
+b = 7.9447061286260565
+
+def V(P): 
+    return (P-b)/a
 
 
 
@@ -53,15 +59,11 @@ SEQ = False
 
 # Opening of a Pyrpl session to interact with RedPitaya
 HOSTNAME = "192.168.1.208"
-# The config file, here 'blue422', is specific to each laser. The change on one config file 
-# does not affect the other lasers 
-
-# If environment = pyrpl_env, put monitor_server_name at monitor_server
-# If envrironment = pyrpl-env3, put monitor_server_name at pyrpl_server
-# Do it automatically? Using environment variables ? 
+# The config file, here 'blue422nm', is specific to each laser. The changes on one config file 
+# do not affect the other lasers 
 
 monitor_server_name = "monitor_server"
-p = Pyrpl('blue422', hostname = HOSTNAME, reloadserver = True)
+p = Pyrpl('blue422nm', hostname = HOSTNAME, reloadserver = True)
 
 
 # # Access the RedPitaya object in charge of communicating with the board
@@ -74,7 +76,7 @@ r = p.rp
 pid = r.pid0
 pid1 = r.pid1
 pid2 = r.pid2
-pid.output_direct = 'off'
+pid.output_direct = 'off' 
 pid1.output_direct = 'off'
 pid2.output_direct = 'off'
 
@@ -93,52 +95,17 @@ s.input2 = 'out1'
 s.trigger_source = 'immediately' 
 
 
-
-# Just setup the parameters of the PID, so that the lock is activated immediately 
+# Setup the parameters of the PID before to get the instructions for power setpoint
 pid.input = 'in1'
-pid.output_direct = 'out1'
-pid.setpoint = 0.07
-pid.p = -100
-pid.i = -0.01
+pid.pause_gains = 'pid'
+pid.p = 100
+pid.i = 0.001
 pid.d = 0
-pid.ival = 0  # Usually the first thing to do is to adjust this parameter with the GUI 
+pid.ival = 0 
 pid.inputfilter = [0, 0, 0, 0]
 pid.max_voltage = 1
-pid.min_voltage = -1    
+pid.min_voltage = -1  
 
 
-
-
-if ACQ: 
-    
-    times, signal  = [], []
-    duration = 3600 # seconds
-    sampling_rate = 2 # Hz
-    
-    # Name of the file containing the dataframe of the acquired data 
-    acq_file_name  =  'locked_laser_jeu_4_juillet_without_average.pkl'
-    
-    t0 = time.time()
-    
-    while time.time() - t0 < duration: 
-        sleep(1/sampling_rate)
-        times.append(time.time()-t0)
-        signal.append(s.voltage_in1)
-        
-        
-    fig = plt.figure()
-    plt.plot(times, signal, label = 'blue laser: 422 nm')
-    plt.xlabel('times (seconds)')
-    plt.ylabel('Photodiode voltage (V)')
-    plt.legend()
-    plt.plot()
-    
-    
-    df = pd.DataFrame({
-                        'times': times, 
-                        'signal': signal} )
-    
-    
-    
-    
-    pickle.dump(df, open(os.path.join(current_dir, acq_file_name), 'wb'))
+pid.setpoint = 0.1
+pid.output_direct = 'out1'
