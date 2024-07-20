@@ -5,10 +5,10 @@ import pandas as pd
 import pickle 
 import os  
 from scipy.optimize import curve_fit
-# import scienceplots 
+import scienceplots 
 
 
-# plt.style.use('science')
+plt.style.use('science')
 
 
 
@@ -86,27 +86,33 @@ paramètres de la loi affine ou linéaire
 
 ##### Etape 3: D'abord locker en voltage et ensuite regarder à quelle puissance cela correspond dans le piège  #####
 
-V = np.array([0.04, 0.03, 0.02, 0.05, 0.06, 0.07, 0.08, 0.09])
-P = np.array([31, 25, 19, 35.5, 42.5, 47.5, 53.5, 59, ])
+V = np.array([0.05, 0.1, 0.147, 0.195, 0.244, 0.292, 0.264, 0.216, 0.12, 0.169, 0.024, 0.072 ])
+P = np.array([37, 65.5, 94, 120, 148, 174, 159, 130, 76, 103, 21, 48.5])
 # Je n'ai pas fait .1 car en partant de 0.4 V mon PID saturait pour changer plus la puissance 
 # et donc le voltage de la photodiode
 # Il faudra vraiment mettre en place des amplificateurs 
 
 
-# Erreurs: +- 0.5 microW
+#Erreurs: +- 0.5 microW
 
-# def linear_fit(x, a, b): 
-#     return a*x + b
+Yerr = [1 for _ in range(len(P))]
+Xerr = [0.7*1e-3 for _ in range(len(V))]
+
+def linear_fit(x, a, b): 
+    return a*x + b
 
 
-# plt.plot(V,P, 'b.')
-# plt.xlabel ('Photodiode Voltage (V)')
-# plt.ylabel('Laser power (microWatts)')
-# plt.grid()
-# popt, pcov = curve_fit(linear_fit, V, P)
-# a = popt[0]
-# b = popt[1]
-# plt.plot(V, linear_fit(V, a, b), color='red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
-# perr3 = np.sqrt(np.diag(pcov))
-# plt.legend()
-# plt.show()
+plt.plot(V,P, 'b.')
+plt.xlabel ('Photodiode Voltage (V)')
+plt.ylabel('Laser power (microWatts)')
+plt.grid()
+popt, pcov = curve_fit(linear_fit, V, P)
+a = popt[0]
+b = popt[1]
+plt.plot(V, linear_fit(V, a, b), color='red', linestyle = 'dashed', label = f'{a:.4f}x + {b:.4f}')
+perr3 = np.sqrt(np.diag(pcov)) 
+plt.legend(fontsize = 15) 
+plt.rc('axes', labelsize = 15)
+for i in range(len(V)):
+    plt.errorbar(V[i], P[i], xerr = Xerr[i], yerr = Yerr[i], color='black')
+plt.show()
